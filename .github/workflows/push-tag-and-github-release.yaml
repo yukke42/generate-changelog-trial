@@ -1,4 +1,4 @@
-name: push-tag-on-package-version-update
+name: push-tag-and-github-release
 
 on:
   push:
@@ -38,3 +38,19 @@ jobs:
         run: |
           git tag v${{ steps.get-package-version.outputs.package_version }}
           git push origin v${{ steps.get-package-version.outputs.package_version }}
+
+      - name: Run generate-changelog
+        if: steps.check-tag.outputs.exists == 'false'
+        id: generate-changelog
+        uses: autowarefoundation/autoware-github-actions/generate-changelog@v1
+
+      - name: Release to GitHub
+        if: steps.check-tag.outputs.exists == 'false'
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --draft \
+            --title "Release ${{ github.ref_name }}" \
+            --notes "$NOTES"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NOTES: ${{ steps.generate-changelog.outputs.changelog }}
