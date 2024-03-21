@@ -1,4 +1,4 @@
-name: Push Tag on Package Version Update
+name: push-tag-on-package-version-update
 
 on:
   push:
